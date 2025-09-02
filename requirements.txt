@@ -1,0 +1,6 @@
+requests
+minio
+pandas
+duckdb
+dbt-duckdb
+python-dotenv
