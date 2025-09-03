@@ -4,10 +4,12 @@ from io import BytesIO
 import pandas as pd
 
 from src.utils.logging_utils import setup_logger
+from src.utils.storage_utils import connect_to_minio
 from src.config.app_settings import (
     LOG_FILE,
     EBIRD_API_KEY, 
-    EBIRD_OBSERVATION_BASE_URL
+    EBIRD_OBSERVATION_BASE_URL,
+    MINIO_BUCKET_NAME
 )
 
 log_name = os.path.basename(__file__)
@@ -40,6 +42,28 @@ def convert_json_to_parquet(data):
     bird_data.to_parquet(buffer, index=False)
     buffer.seek(0)
     return buffer
+
+def upload_parquet_to_minio(data, object_name, timestamp=None):
+    logger.info(f'Connecting to MinIO client')
+    minio_client = connect_to_minio()
+    if minio_client:
+        logger.info(f'Connected to MinIO client')
+    else:
+        logger.error(f'Failed to connect to MinIO client')
+        return
+
+    try:
+        minio_client.put_object(
+            bucket_name=MINIO_BUCKET_NAME,
+            object_name=object_name,
+            data=data,
+            length=len(data),
+            content_type='application/parquet'
+        )
+        logger.info(f'Successfully uploaded {object_name} to MinIO')
+    except Exception as e:
+        logger.error(f'Error uploading to MinIO: {e}')
+        raise
 
 def main():
     logger.info('Starting eBird API ingestion')
