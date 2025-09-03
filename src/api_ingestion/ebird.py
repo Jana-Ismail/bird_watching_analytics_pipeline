@@ -58,7 +58,7 @@ def upload_parquet_to_minio(data, object_name):
             bucket_name=MINIO_BUCKET_NAME,
             object_name=object_name,
             data=data,
-            length=len(data),
+            length=data.getbuffer().nbytes,
             content_type='application/parquet'
         )
         logger.info(f'Successfully uploaded {object_name} to MinIO')
@@ -88,7 +88,7 @@ def main():
     logger.info(f'Converting eBird API data to Parquet format')
     co_observations_parquet = convert_json_to_parquet(co_observations)
     logger.info(f'Uploading Parquet file to MinIO')
-    object_name=f'co_recent_observations_{timestamp}.parquet'
+    object_name=f'bird_watching/ebird/observations/co_recent_{timestamp}.parquet'
     upload_parquet_to_minio(co_observations_parquet, object_name=object_name)
 
 
