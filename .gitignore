@@ -12,6 +12,8 @@ notebooks/
 *.xls
 *.xlsx
 data/
+.vscode/
+*.json
 
 
 # Byte-compiled / optimized / DLL files
