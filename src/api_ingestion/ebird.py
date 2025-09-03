@@ -4,6 +4,7 @@ from io import BytesIO
 import pandas as pd
 
 from src.utils.logging_utils import setup_logger
+from src.utils.date_utils import get_current_utc_timestamp
 from src.utils.storage_utils import connect_to_minio
 from src.config.app_settings import (
     LOG_FILE,
@@ -43,7 +44,7 @@ def convert_json_to_parquet(data):
     buffer.seek(0)
     return buffer
 
-def upload_parquet_to_minio(data, object_name, timestamp=None):
+def upload_parquet_to_minio(data, object_name):
     logger.info(f'Connecting to MinIO client')
     minio_client = connect_to_minio()
     if minio_client:
@@ -67,6 +68,7 @@ def upload_parquet_to_minio(data, object_name, timestamp=None):
 
 def main():
     logger.info('Starting eBird API ingestion')
+    timestamp = get_current_utc_timestamp('%Y%m%d_%H%M%S')
     
     logger.info(f'Fetching eBird API recent observation data')
     # build CO url
@@ -75,8 +77,19 @@ def main():
         'maxResults': 10,
         'back': 7
     }
-    co_observations = get_recent_observations_by_region(region_code, query_params=query_params)
 
+    try:
+        logger.info('Fetching recent CO observations')
+        co_observations = get_recent_observations_by_region(region_code, query_params=query_params)
+    except Exception as e:
+        logger.error(f'Error fetching eBird API data: {e}')
+        raise
+
+    logger.info(f'Converting eBird API data to Parquet format')
+    co_observations_parquet = convert_json_to_parquet(co_observations)
+    logger.info(f'Uploading Parquet file to MinIO')
+    object_name=f'co_recent_observations_{timestamp}.parquet'
+    upload_parquet_to_minio(co_observations_parquet, object_name=object_name)
 
 
 if __name__ == "__main__":
