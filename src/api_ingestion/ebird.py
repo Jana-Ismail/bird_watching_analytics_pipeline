@@ -1,5 +1,7 @@
 import os
 import requests
+from io import BytesIO
+import pandas as pd
 
 from src.utils.logging_utils import setup_logger
 from src.config.app_settings import (
@@ -32,6 +34,12 @@ def get_recent_observations_by_region(region_code, base_url=EBIRD_OBSERVATION_BA
 
     return response.json()
 
+def convert_json_to_parquet(data):
+    bird_data = pd.DataFrame(data)
+    buffer = BytesIO()
+    bird_data.to_parquet(buffer, index=False)
+    buffer.seek(0)
+    return buffer
 
 def main():
     logger.info('Starting eBird API ingestion')
