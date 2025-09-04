@@ -6,3 +6,4 @@ dbt-duckdb
 python-dotenv
 fastparquet
 pyarrow
+pyinaturalist

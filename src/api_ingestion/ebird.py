@@ -9,14 +9,14 @@ from src.utils.storage_utils import connect_to_minio
 from src.config.app_settings import (
     LOG_FILE,
     EBIRD_API_KEY, 
-    EBIRD_OBSERVATION_BASE_URL,
+    EBIRD_BASE_URL,
     MINIO_BUCKET_NAME
 )
 
 log_name = os.path.basename(__file__)
 logger = setup_logger(log_name, LOG_FILE)
 
-def get_recent_observations_by_region(region_code, base_url=EBIRD_OBSERVATION_BASE_URL, api_key=EBIRD_API_KEY, query_params=None):
+def get_recent_observations_by_region(region_code, base_url=EBIRD_BASE_URL, api_key=EBIRD_API_KEY, query_params=None):
     logger.info(f'Fetching recent observations for region: "{region_code}"')
     if query_params is None:
         query_params = {}
@@ -25,7 +25,8 @@ def get_recent_observations_by_region(region_code, base_url=EBIRD_OBSERVATION_BA
         'X-ebirdApiToken': api_key
     }
 
-    url = f'{base_url}/{region_code}/recent'
+    recent_observations_by_region_endpoint = f'/data/obs/{region_code}/recent'
+    url = f'{base_url}/{recent_observations_by_region_endpoint}'
 
     try:
         response = requests.get(url, headers=headers, params=query_params)

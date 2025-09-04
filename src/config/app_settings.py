@@ -12,11 +12,15 @@ LOG_FILE = LOG_DIR / 'bird_watching_analytics_pipeline.log'
 
 # Ebird API Credentials
 EBIRD_API_KEY = os.getenv('EBIRD_API_KEY')
-EBIRD_OBSERVATION_BASE_URL = os.getenv('EBIRD_OBSERVATION_BASE_URL')
+EBIRD_BASE_URL = os.getenv('EBIRD_BASE_URL')
 
-EBIRD_REGION_CODE = 'US-CO'
-EBIRD_OBSERVATION_ENDPOINTS = {
-    "recent_by_region": f"{EBIRD_OBSERVATION_BASE_URL}/data/obs/{EBIRD_REGION_CODE}/recent",
+EBIRD_REGION_CODE = 'US-CA'
+
+EBIRD_ENDPOINTS = {
+    'taxonomy': '/ref/taxonomy/ebird',
+    'regional_hotspots': '/ref/hotspot/{{regionCode}}',
+    'hotspot_information': '/ref/hotspot/info/{{locId}}',
+    'region_info': '/ref/region/info/{{regionCode}}'
 }
 
 # Minio Credentials
