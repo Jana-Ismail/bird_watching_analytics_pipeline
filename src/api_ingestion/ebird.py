@@ -10,7 +10,8 @@ from src.config.app_settings import (
     LOG_FILE,
     EBIRD_API_KEY, 
     EBIRD_BASE_URL,
-    MINIO_BUCKET_NAME
+    MINIO_BUCKET_NAME,
+    EBIRD_REGION_CODE
 )
 
 log_name = os.path.basename(__file__)
@@ -25,7 +26,7 @@ def get_recent_observations_by_region(region_code, base_url=EBIRD_BASE_URL, api_
         'X-ebirdApiToken': api_key
     }
 
-    recent_observations_by_region_endpoint = f'/data/obs/{region_code}/recent'
+    recent_observations_by_region_endpoint = f'data/obs/{region_code}/recent'
     url = f'{base_url}/{recent_observations_by_region_endpoint}'
 
     try:
@@ -73,10 +74,10 @@ def main():
     
     logger.info(f'Fetching eBird API recent observation data')
     # build CO url
-    region_code = 'US-CO'
+    region_code = EBIRD_REGION_CODE
     query_params = {
-        'maxResults': 10,
-        'back': 7
+        # 'maxResults': 10,
+        'back': 30
     }
 
     try:
@@ -89,7 +90,7 @@ def main():
     logger.info(f'Converting eBird API data to Parquet format')
     co_observations_parquet = convert_json_to_parquet(co_observations)
     logger.info(f'Uploading Parquet file to MinIO')
-    object_name=f'bird_watching/ebird/observations/co_recent_{timestamp}.parquet'
+    object_name=f'bird_watching/ebird/observations/recent/{region_code}_{timestamp}.parquet'
     upload_parquet_to_minio(co_observations_parquet, object_name=object_name)
 
 
