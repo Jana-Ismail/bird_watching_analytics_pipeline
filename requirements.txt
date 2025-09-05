@@ -4,3 +4,7 @@ pandas
 duckdb
 dbt-duckdb
 python-dotenv
+fastparquet
+pyarrow
+pyinaturalist
+pyinaturalist-convert[all]
