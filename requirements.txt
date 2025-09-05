@@ -7,3 +7,4 @@ python-dotenv
 fastparquet
 pyarrow
 pyinaturalist
+pyinaturalist-convert[all]

@@ -69,8 +69,8 @@ def upload_parquet_to_minio(data, object_name):
         raise
 
 def main():
-    logger.info('Starting eBird API ingestion')
     timestamp = get_current_utc_timestamp('%Y%m%d_%H%M%S')
+    logger.info(f'Starting eBird API ingestion at {timestamp}')
     
     logger.info(f'Fetching eBird API recent observation data')
     # build CO url
@@ -90,7 +90,7 @@ def main():
     logger.info(f'Converting eBird API data to Parquet format')
     co_observations_parquet = convert_json_to_parquet(co_observations)
     logger.info(f'Uploading Parquet file to MinIO')
-    object_name=f'bird_watching/ebird/observations/recent/{region_code}_{timestamp}.parquet'
+    object_name=f'birds/ebird/observations/recent/{region_code}_{timestamp}.parquet'
     upload_parquet_to_minio(co_observations_parquet, object_name=object_name)
 
 
