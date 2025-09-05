@@ -104,6 +104,5 @@ def main():
     upload_parquet_to_minio(parquet_bytes, object_name=object_name, logger=logger)
 
 
-
 if __name__ == "__main__":
     main()

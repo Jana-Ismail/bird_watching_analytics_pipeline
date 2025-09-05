@@ -18,7 +18,7 @@ def connect_to_minio():
 
     return minio_client
 
-def upload_parquet_to_minio(data, object_name, logger):
+def upload_parquet_to_minio(data, object_name, logger, bucket_name=MINIO_BUCKET_NAME):
     logger.info(f'Connecting to MinIO client')
     minio_client = connect_to_minio()
     if minio_client:
@@ -29,7 +29,7 @@ def upload_parquet_to_minio(data, object_name, logger):
 
     try:
         minio_client.put_object(
-            bucket_name=MINIO_BUCKET_NAME,
+            bucket_name=bucket_name,
             object_name=object_name,
             data=data,
             length=data.getbuffer().nbytes,

@@ -10,13 +10,15 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 LOG_DIR = PROJECT_ROOT / 'logs'
 LOG_FILE = LOG_DIR / 'bird_watching_analytics_pipeline.log'
 
-
+# California Region Credentials
+CA_REGION_CODE = 'US-CA'
+CA_COORDINATES = '-124.48,32.53,-114.13,42.01'  # SW longitude, SW latitude, NE longitude, NE latitude
+                                                # minX,minY,maxX,maxY
 
 # Ebird API Credentials
 EBIRD_API_KEY = os.getenv('EBIRD_API_KEY')
 EBIRD_BASE_URL = os.getenv('EBIRD_BASE_URL')
 
-EBIRD_REGION_CODE = 'US-CA'
 
 EBIRD_ENDPOINTS = {
     'taxonomy': '/ref/taxonomy/ebird',
@@ -40,6 +42,12 @@ CA_BIRD_HOTSPOTS = {
 }
 
 BIRDS_TAXON_NAME = 'Aves'
+
+# NASA FIRMS API Credentials
+NASA_FIRMS_BASE_URL = 'https://firms.modaps.eosdis.nasa.gov/api/area/csv'
+NASA_FIRMS_API_KEY = os.getenv('NASA_FIRMS_API_MAP_KEY')
+NASA_FIRMS_DATA_SOURCE = 'MODIS_SP' # VIIRS_SNPP_SP for higher resolution
+
 
 # Minio Credentials
 MINIO_ENDPOINT = os.getenv('MINIO_URL_HOST_PORT')
