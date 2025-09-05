@@ -1,3 +1,4 @@
+import os
 import logging
 
 from src.utils.file_utils import ensure_directory_exists
@@ -30,3 +31,5 @@ def setup_logger(name, log_file=LOG_FILE, level='INFO'):
 
     return logger
 
+def get_log_name(file_path):
+    return os.path.basename(file_path)
