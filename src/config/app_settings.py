@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
+DATA_DIR = PROJECT_ROOT / 'data'
 
 # Logging Credentials
 LOG_DIR = PROJECT_ROOT / 'logs'
@@ -53,4 +54,5 @@ NASA_FIRMS_DATA_SOURCE = 'MODIS_SP' # VIIRS_SNPP_SP for higher resolution
 MINIO_ENDPOINT = os.getenv('MINIO_URL_HOST_PORT')
 MINIO_ACCESS_KEY = os.getenv('MINIO_ACCESS_KEY')
 MINIO_SECRET_KEY = os.getenv('MINIO_SECRET_KEY')
-MINIO_BUCKET_NAME = os.getenv('MINIO_BUCKET_NAME')
+MINIO_RAW_BUCKET_NAME = os.getenv('MINIO_RAW_BUCKET_NAME')
+MINIO_WAREHOUSE_BUCKET_NAME = os.getenv('MINIO_WH_BUCKET_NAME')

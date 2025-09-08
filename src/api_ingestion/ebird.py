@@ -10,7 +10,8 @@ from src.config.app_settings import (
     LOG_FILE,
     EBIRD_API_KEY, 
     EBIRD_BASE_URL,
-    CA_REGION_CODE
+    CA_REGION_CODE,
+    MINIO_RAW_BUCKET_NAME
 )
 
 log_name = os.path.basename(__file__)
@@ -69,7 +70,7 @@ def main():
 
     logger.info(f'Uploading Parquet file to MinIO')
     object_name=f'birds/ebird/observations/recent/{region_code}_{timestamp}.parquet'
-    upload_parquet_to_minio(co_observations_parquet, object_name=object_name, logger=logger)
+    upload_parquet_to_minio(co_observations_parquet, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
 
 
 if __name__ == "__main__":

@@ -13,7 +13,8 @@ from src.config.app_settings import (
     NASA_FIRMS_API_KEY,
     NASA_FIRMS_BASE_URL,
     NASA_FIRMS_DATA_SOURCE,
-    CA_COORDINATES
+    CA_COORDINATES,
+    MINIO_RAW_BUCKET_NAME
 )
 
 logger = setup_logger(get_log_name(__file__), LOG_FILE)
@@ -79,7 +80,7 @@ def process_nasa_firms_data(start_date_str, end_date_str, api_key, data_source=N
             object_name = (f'weather/fire/nasa_firms/{file_name}'
             )
 
-            upload_parquet_to_minio(parquet_buffer, object_name, logger)
+            upload_parquet_to_minio(parquet_buffer, object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
 
         # Respect API rate limits -> 5000 requests per 10 minutes
         if request_count > 0:

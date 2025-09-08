@@ -10,7 +10,8 @@ from src.utils.storage_utils import upload_parquet_to_minio
 from src.config.app_settings import (
     LOG_FILE,
     CA_BIRD_HOTSPOTS,
-    BIRDS_TAXON_NAME
+    BIRDS_TAXON_NAME,
+    MINIO_RAW_BUCKET_NAME
 )
 
 log_name = os.path.basename(__file__)
@@ -101,7 +102,7 @@ def main():
     
     logger.info(f'Uploading observations Parquet data to MinIO')
     object_name=f'birds/inaturalist/observations/US-CA/{hotspot_name}/{start_date}_{end_date}.parquet'
-    upload_parquet_to_minio(parquet_bytes, object_name=object_name, logger=logger)
+    upload_parquet_to_minio(parquet_bytes, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
 
 
 if __name__ == "__main__":
