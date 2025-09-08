@@ -47,7 +47,8 @@ BIRDS_TAXON_NAME = 'Aves'
 # NASA FIRMS API Credentials
 NASA_FIRMS_BASE_URL = 'https://firms.modaps.eosdis.nasa.gov/api/area/csv'
 NASA_FIRMS_API_KEY = os.getenv('NASA_FIRMS_API_MAP_KEY')
-NASA_FIRMS_DATA_SOURCE = 'MODIS_SP' # VIIRS_SNPP_SP for higher resolution
+NASA_FIRMS_DATA_SOURCE = 'MODIS_NRT'
+NASA_FIRMS_HISTORICAL_DATA_SOURCE = 'MODIS_SP' # VIIRS_SNPP_SP for higher resolution
 
 
 # Minio Credentials
