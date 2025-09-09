@@ -10,13 +10,15 @@ from src.utils.storage_utils import upload_parquet_to_minio
 from src.config.app_settings import (
     LOG_FILE,
     BIRDS_TAXON_NAME,
-    MINIO_RAW_BUCKET_NAME
+    MINIO_RAW_BUCKET_NAME,
+    CA_HOTSPOTS_BY_CENTER_POINT_COORDINATES,
+    CA_REGION_CODE
 )
 
 log_name = os.path.basename(__file__)
 logger = setup_logger(log_name, LOG_FILE)
 
-def get_inaturalist_observations_by_location(
+def get_inaturalist_observations_by_coordinates(
         latitude, 
         longitude, 
         radius_km, 
@@ -27,27 +29,39 @@ def get_inaturalist_observations_by_location(
 
     logger.info(f'Fetching bird observations from iNaturalist API for location ({latitude}, {longitude}) within radius {radius_km} km '
                 f'from {start_date} to {end_date}')
-
-    try:
-        observations = get_observations(
-            taxon_name=BIRDS_TAXON_NAME,
-            latitude=latitude,
-            longitude=longitude,
-            radius=radius_km,
-            d1=start_date,
-            d2=end_date,
-            per_page=per_page,
-            only_id=False, # Get full observation details or not
-            geo=False,  # Include geo tagged data or not - including for raw, will filter later
-            verifiable=False, # Include research-grade observations or not
-            order_by='observed_on',
-            order='desc',
-            sounds=False, # Exclude sounds-only observations,
-            captive=False   # Exclude zoo/captive observations
-        )
-    except Exception as e:
-        logger.error(f'Error fetching observations from iNaturalist API: {e}')
-        raise
+    
+    observations = []
+    page = 1
+    
+    while True:
+        try:
+            response = get_observations(
+                taxon_name=BIRDS_TAXON_NAME,
+                latitude=latitude,
+                longitude=longitude,
+                radius=radius_km,
+                d1=start_date,
+                d2=end_date,
+                per_page=per_page,
+                only_id=False, # Get full observation details or not
+                geo=False,  # Include geo tagged data or not - including for raw, will filter later
+                verifiable=False, # Include research-grade observations or not
+                order_by='observed_on',
+                order='desc',
+                sounds=False, # Exclude sounds-only observations,
+                captive=False   # Exclude zoo/captive observations
+            )
+            
+            results = response.get('results', [])
+            if not results:
+                break
+            
+            observations.extend(results)
+            page += 1
+        
+        except Exception as e:
+            logger.error(f'Error fetching observations from iNaturalist API: {e}')
+            raise
 
     return observations
 
@@ -79,30 +93,34 @@ def main():
     timestamp = get_current_utc_timestamp('%Y%m%d_%H%M%S')
     logger.info(f'Starting iNaturalist API ingestion at {timestamp}')
 
-    hotspot_name = 'point_reyes'
-    hotspot_data = CA_BIRD_HOTSPOTS[hotspot_name] 
-    latitude = hotspot_data['latitude']
-    longitude = hotspot_data['longitude']
-    radius_km = hotspot_data['radius_km']
-    start_date = '2024-07-01'
-    end_date = '2024-07-31'
+    for hotspot_name, hotspot_data in CA_HOTSPOTS_BY_CENTER_POINT_COORDINATES.items():
+        latitude, longitude = hotspot_data.split(',')
+        latitude = float(latitude)
+        longitude = float(longitude)
 
-    logger.info(f'Fetching iNaturalist API recent observation data for hotspot: {hotspot_name}')
-    observations = get_inaturalist_observations_by_location(
-        latitude,
-        longitude,
-        radius_km,
-        start_date,
-        end_date
-    )
+        radius_km = 200
+        start_date = '2024-07-01'
+        end_date = '2024-07-31'
+
+
+        logger.info(f'Fetching iNaturalist API recent observation data for hotspot: {hotspot_name} on {start_date}')
+        observations = get_inaturalist_observations_by_coordinates(
+            latitude,
+            longitude,
+            radius_km,
+            start_date,
+            end_date
+        )
+        logger.info(f'Fetched {len(observations)} observations for hotspot: {hotspot_name} on {start_date}')
+        logger.debug(f'Observations data sample: {observations[:2]}')  # Log first 2 observations for debugging
 
     logger.info(f'Converting observations JSON data to parquet bytes')
     parquet_bytes = convert_json_to_parquet_bytes(observations)
     
     logger.info(f'Uploading observations Parquet data to MinIO')
-    object_name=f'birds/inaturalist/observations/US-CA/{hotspot_name}/{start_date}_{end_date}.parquet'
+    file_name = f'inaturalist_observations_{CA_REGION_CODE}_{hotspot_name}_{start_date}-{end_date}_{timestamp}.parquet'
+    object_name=f'birds/observations/region={CA_REGION_CODE}/hotspot={hotspot_name}/source=inaturalist/daily/date={start_date}/{file_name}'
     upload_parquet_to_minio(parquet_bytes, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
-
 
 if __name__ == "__main__":
     main()

@@ -119,7 +119,7 @@ def main():
     
         logger.info(f'Uploading observations Parquet data to MinIO')
         file_name = f'inaturalist_observations_{CA_REGION_CODE}_{hotspot_name}_{start_date}_{timestamp}.parquet'
-        object_name=f'birds/observations/region=US-CA/hotspot={hotspot_name}/source=inaturalist/daily/date={start_date}/{file_name}'
+        object_name=f'birds/observations/region={CA_REGION_CODE}/hotspot={hotspot_name}/source=inaturalist/daily/date={start_date}/{file_name}'
         upload_parquet_to_minio(parquet_bytes, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
 
 
