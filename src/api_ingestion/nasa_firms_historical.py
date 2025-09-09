@@ -13,7 +13,8 @@ from src.config.app_settings import (
     NASA_FIRMS_API_KEY,
     NASA_FIRMS_BASE_URL,
     NASA_FIRMS_DATA_SOURCE,
-    CA_COORDINATES
+    CA_COORDINATES,
+    MINIO_RAW_BUCKET_NAME
 )
 
 logger = setup_logger(get_log_name(__file__), LOG_FILE)
@@ -52,14 +53,6 @@ def fetch_firms_chunk(
         logger.error(f'Error parsing CSV for {date_str}: {e}')
         return pd.DataFrame()
 
-# def convert_csv_to_parquet(data):
-#     data = pd.DataFrame(data)
-#     buffer = BytesIO()
-#     data.to_parquet(buffer, index=False)
-#     buffer.seek(0)
-    
-#     return buffer
-
 def convert_csv_to_parquet(df: pd.DataFrame) -> BytesIO:
     """Convert a DataFrame to a parquet BytesIO buffer."""
     buffer = BytesIO()
@@ -87,7 +80,7 @@ def process_nasa_firms_data(start_date_str, end_date_str, api_key, data_source=N
             object_name = (f'weather/fire/nasa_firms/{file_name}'
             )
 
-            upload_parquet_to_minio(parquet_buffer, object_name, logger)
+            upload_parquet_to_minio(parquet_buffer, object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
 
         # Respect API rate limits -> 5000 requests per 10 minutes
         if request_count > 0:
@@ -96,49 +89,6 @@ def process_nasa_firms_data(start_date_str, end_date_str, api_key, data_source=N
         current_date = chunk_end_date + timedelta(days=1)
         request_count += 1
 
-# def process_nasa_firms_data(
-#         start_date,
-#         end_date,
-#         base_url=NASA_FIRMS_BASE_URL,
-#         api_key=NASA_FIRMS_API_KEY,
-#         data_source=NASA_FIRMS_DATA_SOURCE,
-#         coordinates=CA_COORDINATES
-# ):
-#     # url = f'{base_url}/{api_key}/{data_source}/{coordinates}/{days}'
-#     start_date = datetime.strptime(start_date, '%Y-%m-%d')
-#     end_date = datetime.strptime(end_date, '%Y-%m-%d')
-
-#     logger.info(f'Fetching FIRMS data from {start_date} to {end_date} using {data_source}')
-
-#     # API has 10-day limits for processing data
-#     current_date = start_date
-#     request_count = 0
-
-#     # Rolling 10-day window - timedelta handles complexity of date ranges
-#     while current_date < end_date:
-#         # Either end 10 days after previous chunk date, or end_date if less than 10 days from previous chunk date
-#         chunk_end_date = min(current_date + timedelta(days=9), end_date)
-
-#         # Convert back to string for API
-#         date = current_date.strftime('%Y-%m-%d')
-#         day_range = (chunk_end_date - current_date).days + 1
-
-#         url = f'{base_url}/{api_key}/{data_source}/{coordinates}/{date}/{day_range}'
-
-#         try:
-#             logger.info(f'Requesting NASA FIRMS fire data for {date} (next {day_range} days)')
-            
-#             # API rate limits (5000 transactions per 10 minutes)
-#             if request_count > 0:
-#                 time.sleep(1.2)
-            
-#             response = requests.get(url, timeout=20)
-#             response.raise_for_status()
-
-
-#         except Exception as e:
-#             logger.error(f'Error fetching FIRMS data: {e}')
-#             raise
 
 def main():
     timestamp = get_current_utc_timestamp('%Y%m%d_%H%M%S')

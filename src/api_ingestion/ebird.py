@@ -2,6 +2,7 @@ import os
 import requests
 from io import BytesIO
 import pandas as pd
+from datetime import datetime, timedelta, timezone
 
 from src.utils.logging_utils import setup_logger
 from src.utils.date_utils import get_current_utc_timestamp
@@ -10,7 +11,8 @@ from src.config.app_settings import (
     LOG_FILE,
     EBIRD_API_KEY, 
     EBIRD_BASE_URL,
-    CA_REGION_CODE
+    CA_REGION_CODE,
+    MINIO_RAW_BUCKET_NAME
 )
 
 log_name = os.path.basename(__file__)
@@ -46,30 +48,35 @@ def convert_json_to_parquet(data):
     return buffer
 
 def main():
+    today_utc = datetime.now(timezone.utc).date()
+    yesterday_utc = today_utc - timedelta(days=1)
     timestamp = get_current_utc_timestamp('%Y%m%d_%H%M%S')
-    logger.info(f'Starting eBird API ingestion at {timestamp}')
+    logger.info(f'Starting eBird API ingestion for {yesterday_utc}')
     
     logger.info(f'Fetching eBird API recent observation data')
-    # build CO url
+
     region_code = CA_REGION_CODE
     query_params = {
-        # 'maxResults': 10,
-        'back': 30
+        'back': 1
     }
 
     try:
-        logger.info('Fetching recent CO observations')
-        co_observations = get_recent_observations_by_region(region_code, query_params=query_params)
+        logger.info('Fetching recent CA observations')
+        daily_observations = get_recent_observations_by_region(region_code, query_params=query_params)
     except Exception as e:
         logger.error(f'Error fetching eBird API data: {e}')
         raise
 
+    if not daily_observations:
+        logger.warning(f'No recent observations found for region: "{region_code}"')
+        return
+
     logger.info(f'Converting eBird API data to Parquet format')
-    co_observations_parquet = convert_json_to_parquet(co_observations)
+    daily_observations_parquet = convert_json_to_parquet(daily_observations)
 
     logger.info(f'Uploading Parquet file to MinIO')
-    object_name=f'birds/ebird/observations/recent/{region_code}_{timestamp}.parquet'
-    upload_parquet_to_minio(co_observations_parquet, object_name=object_name, logger=logger)
+    object_name=f'birds/observations/source=ebird/daily/region={region_code}/date={yesterday_utc}/ebird_observations_{region_code}_{timestamp}.parquet'
+    upload_parquet_to_minio(daily_observations_parquet, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
 
 
 if __name__ == "__main__":
