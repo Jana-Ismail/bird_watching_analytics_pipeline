@@ -76,7 +76,7 @@ def main():
 
     logger.info(f'Uploading Parquet file to MinIO')
     file_name = f'ebird_observations_{region_code}_{timestamp}.parquet'
-    object_name=f'birds/observations/source=ebird/daily/region={region_code}/date={yesterday_utc}/{file_name}'
+    object_name=f'birds/observations/region={region_code}/source=ebird/daily/date={yesterday_utc}/{file_name}'
     upload_parquet_to_minio(daily_observations_parquet, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
 
 

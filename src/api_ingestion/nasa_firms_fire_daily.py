@@ -63,7 +63,7 @@ def main():
     parquet_buffer = convert_csv_to_parquet(fire_data)
 
     file_name = f'nasa_firms_fire_{CA_REGION_CODE}_{target_date_str}_{timestamp}.parquet'
-    object_name = f'weather/fire/source=nasa_firms/daily/region={CA_REGION_CODE}/date={target_date_str}/{file_name}'
+    object_name = f'weather/fire/region={CA_REGION_CODE}/source=nasa_firms/daily/date={target_date_str}/{file_name}'
 
     upload_parquet_to_minio(parquet_buffer, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
 
