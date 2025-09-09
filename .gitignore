@@ -11,7 +11,7 @@ notebooks/
 *.parquet
 *.xls
 *.xlsx
-data/
+# data/
 .vscode/
 *.json
 *.ducklake

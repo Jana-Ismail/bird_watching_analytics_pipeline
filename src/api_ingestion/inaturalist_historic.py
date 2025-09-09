@@ -9,7 +9,6 @@ from src.utils.date_utils import get_current_utc_timestamp
 from src.utils.storage_utils import upload_parquet_to_minio
 from src.config.app_settings import (
     LOG_FILE,
-    CA_BIRD_HOTSPOTS,
     BIRDS_TAXON_NAME,
     MINIO_RAW_BUCKET_NAME
 )

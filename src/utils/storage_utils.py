@@ -58,7 +58,7 @@ def setup_duckdb_minio_connection():
 
 def create_ducklake_warehouse(conn):
     conn.execute("""
-        ATTACH 'ducklake:bird_migration.ducklake' AS warehouse
+        ATTACH 'ducklake:bird_sightings.ducklake' AS warehouse
         (DATA_PATH 's3://warehouse/');
     """)
     conn.execute('USE warehouse;')
