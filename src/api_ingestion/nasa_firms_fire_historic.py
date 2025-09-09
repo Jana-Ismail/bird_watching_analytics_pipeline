@@ -13,8 +13,9 @@ from src.config.app_settings import (
     NASA_FIRMS_API_KEY,
     NASA_FIRMS_BASE_URL,
     NASA_FIRMS_DATA_SOURCE,
-    CA_COORDINATES,
-    MINIO_RAW_BUCKET_NAME
+    CA_BBOX_COORDINATES,
+    MINIO_RAW_BUCKET_NAME,
+    CA_REGION_CODE
 )
 
 logger = setup_logger(get_log_name(__file__), LOG_FILE)
@@ -27,7 +28,7 @@ def fetch_firms_chunk(
         base_url=NASA_FIRMS_BASE_URL,
         api_key=NASA_FIRMS_API_KEY,
         data_source=NASA_FIRMS_DATA_SOURCE,
-        coordinates=CA_COORDINATES
+        coordinates=CA_BBOX_COORDINATES
     ):
     """Fetch a chunk of FIRMS fire data as a pandas DataFrame."""
     date_str = start_date.strftime('%Y-%m-%d')
@@ -64,6 +65,7 @@ def process_nasa_firms_data(start_date_str, end_date_str, api_key, data_source=N
     """
     Fetch FIRMS data in 10-day chunks and upload each chunk to MinIO.
     """
+    ingestion_timestamp = get_current_utc_timestamp('%Y%m%d_%H%M%S')
     start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
     end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
     current_date = start_date
@@ -76,8 +78,8 @@ def process_nasa_firms_data(start_date_str, end_date_str, api_key, data_source=N
         if not fire_data.empty:
             parquet_buffer = convert_csv_to_parquet(fire_data)
 
-            file_name = f"US-CA_{current_date.strftime('%Y%m%d')}_{chunk_end_date.strftime('%Y%m%d')}_{data_source.lower()}.parquet"
-            object_name = (f'weather/fire/nasa_firms/{file_name}'
+            file_name = f"nasa_firms_fire_{CA_REGION_CODE}_{current_date.strftime('%Y%m%d')}-{chunk_end_date.strftime('%Y%m%d')}_{ingestion_timestamp}.parquet"
+            object_name = (f'weather/fire/region={CA_REGION_CODE}/source=nasa_firms/historic/{file_name}'
             )
 
             upload_parquet_to_minio(parquet_buffer, object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)

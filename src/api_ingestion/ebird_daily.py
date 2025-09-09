@@ -75,7 +75,8 @@ def main():
     daily_observations_parquet = convert_json_to_parquet(daily_observations)
 
     logger.info(f'Uploading Parquet file to MinIO')
-    object_name=f'birds/observations/source=ebird/daily/region={region_code}/date={yesterday_utc}/ebird_observations_{region_code}_{timestamp}.parquet'
+    file_name = f'ebird_observations_{region_code}_{timestamp}.parquet'
+    object_name=f'birds/observations/source=ebird/daily/region={region_code}/date={yesterday_utc}/{file_name}'
     upload_parquet_to_minio(daily_observations_parquet, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
 
 

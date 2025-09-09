@@ -64,20 +64,6 @@ EBIRD_ENDPOINTS = {
     'region_info': '/ref/region/info/{{regionCode}}'
 }
 
-# California bird migration/watching hotspots (latitude, longitude, radius_km)
-# CA_BIRD_HOTSPOTS = {
-#     'point_reyes': {'latitude': 38.0469, 'longitude': -122.8681, 'radius_km': 15},
-#     'monterey_bay': {'latitude': 36.6002, 'longitude': -121.8947, 'radius_km': 20},
-#     'salton_sea': {'latitude': 33.3039, 'longitude': -115.8375, 'radius_km': 25},
-#     'farallon_islands': {'latitude': 37.6961, 'longitude': -123.0014, 'radius_km': 10},
-#     'lake_almanor': {'latitude': 40.2419, 'longitude': -121.1253, 'radius_km': 15},
-#     'bodega_bay': {'latitude': 38.3318, 'longitude': -123.0436, 'radius_km': 12},
-#     'morro_bay': {'latitude': 35.3661, 'longitude': -120.8497, 'radius_km': 15},
-#     'lake_merritt': {'latitude': 37.8044, 'longitude': -122.2581, 'radius_km': 8},
-#     'san_francisco_bay': {'latitude': 37.6017, 'longitude': -122.2711, 'radius_km': 30},
-#     'central_valley': {'latitude': 37.0902, 'longitude': -120.7129, 'radius_km': 40}
-# }
-
 BIRDS_TAXON_NAME = 'Aves'
 
 # NASA FIRMS API Credentials
