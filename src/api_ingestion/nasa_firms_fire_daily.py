@@ -14,7 +14,7 @@ from src.config.app_settings import (
     NASA_FIRMS_API_KEY,
     NASA_FIRMS_BASE_URL,
     NASA_FIRMS_DATA_SOURCE,
-    CA_COORDINATES,
+    CA_BBOX_COORDINATES,
     MINIO_RAW_BUCKET_NAME
 )
 
@@ -52,7 +52,7 @@ def main():
     # Get yesterday's date in UTC (timezone-aware) and format as 'YYYY-MM-DD'
     target_date_str = (datetime.now(timezone.utc) - timedelta(days=1)).strftime('%Y-%m-%d')
 
-    url = f'{NASA_FIRMS_BASE_URL}/{NASA_FIRMS_API_KEY}/{NASA_FIRMS_DATA_SOURCE}/{CA_COORDINATES}/1/{target_date_str}'
+    url = f'{NASA_FIRMS_BASE_URL}/{NASA_FIRMS_API_KEY}/{NASA_FIRMS_DATA_SOURCE}/{CA_BBOX_COORDINATES}/1/{target_date_str}'
 
     fire_data = fetch_nasa_firms_daily(url, target_date_str)
 
@@ -62,8 +62,8 @@ def main():
     
     parquet_buffer = convert_csv_to_parquet(fire_data)
 
-    file_name = f'nasa_firms_fire_daily_{target_date_str}_{timestamp}.parquet'
-    object_name = f'weather/fire/source=nasa_firms/daily/region={CA_REGION_CODE}/date={target_date_str}/{file_name}'
+    file_name = f'nasa_firms_fire_{CA_REGION_CODE}_{target_date_str}_{timestamp}.parquet'
+    object_name = f'weather/fire/region={CA_REGION_CODE}/source=nasa_firms/daily/date={target_date_str}/{file_name}'
 
     upload_parquet_to_minio(parquet_buffer, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
 
