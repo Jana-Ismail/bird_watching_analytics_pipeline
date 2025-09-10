@@ -11,8 +11,11 @@ DATA_DIR = PROJECT_ROOT / 'data'
 LOG_DIR = PROJECT_ROOT / 'logs'
 LOG_FILE = LOG_DIR / 'bird_watching_analytics_pipeline.log'
 
+BIRDS_TAXON_NAME = 'Aves'
+
 # California Region Credentials
 CA_REGION_CODE = 'US-CA'
+PACIFIC_TIMEZONE = 'America/Los_Angeles'
 # Note: rename to CA_BBOX_COORDINATES for clarity
 CA_BBOX_COORDINATES = '-124.48,32.53,-114.13,42.01'  # SW longitude, SW latitude, NE longitude, NE  # minX,minY,maxX,maxY
 CA_HOTSPOTS_BBOX_COORDINATES = '-123.00,35.3,-118.90,40.00'
@@ -64,14 +67,17 @@ EBIRD_ENDPOINTS = {
     'region_info': '/ref/region/info/{{regionCode}}'
 }
 
-BIRDS_TAXON_NAME = 'Aves'
-
 # NASA FIRMS API Credentials
 NASA_FIRMS_BASE_URL = 'https://firms.modaps.eosdis.nasa.gov/api/area/csv'
 NASA_FIRMS_API_KEY = os.getenv('NASA_FIRMS_API_MAP_KEY')
 NASA_FIRMS_DATA_SOURCE = 'MODIS_NRT'
 NASA_FIRMS_HISTORICAL_DATA_SOURCE = 'MODIS_SP' # VIIRS_SNPP_SP for higher resolution
 
+# Open Meteo Credentials
+OPEN_METEO_BASE_URL = 'https://archive-api.open-meteo.com/v1/archive'
+# Meteo Tiles File Path
+METEO_TILES_40KM_FILE_PATH = DATA_DIR / 'meteo_tiles_40km_sacramento_to_tulare.json'
+METEO_DAILY_PARAMS = 'temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_hours,windspeed_10m_max,windgusts_10m_max,winddirection_10m_dominant,shortwave_radiation_sum,sunrise,sunset,rain_sum,weathercode,et0_fao_evapotranspiration'
 
 # Minio Credentials
 MINIO_ENDPOINT = os.getenv('MINIO_URL_HOST_PORT')
