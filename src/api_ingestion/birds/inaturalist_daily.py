@@ -36,6 +36,8 @@ def get_inaturalist_observations_by_coordinates(
 
     observations = []
     page = 1
+    # Get once
+    # while page <total_results
     while True:
         try:
             response = get_observations(
