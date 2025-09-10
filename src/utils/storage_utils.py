@@ -39,8 +39,8 @@ def upload_parquet_to_minio(data, object_name, logger, bucket_name):
         logger.error(f'Error uploading to MinIO: {e}')
         raise
 
-def setup_duckdb_minio_connection():
-    conn = duckdb.connect()
+def connect_duckdb_to_minio(duckdb_db='bird_db.ducklake'):
+    conn = duckdb.connect(duckdb_db)
 
     conn.execute('INSTALL httpfs;')
     conn.execute('INSTALL ducklake;')
@@ -56,12 +56,13 @@ def setup_duckdb_minio_connection():
 
     return conn
 
-def create_ducklake_warehouse(conn):
-    conn.execute("""
-        ATTACH 'ducklake:bird_sightings.ducklake' AS warehouse
-        (DATA_PATH 's3://warehouse/');
+def create_ducklake(conn, duckdb_db=':memory:'):
+    conn.execute(f"""
+        ATTACH 'ducklake:{duckdb_db}' AS bird_ducklake
+        (DATA_PATH '/Users/janaismail/workspace/de_2025/capstone/bird_sighting_analytics_pipeline/data/datalake/catalog');
     """)
-    conn.execute('USE warehouse;')
+        # (DATA_PATH 's3://ducklake/catalog');
+    conn.execute('USE bird_ducklake;')
 
     # Medallion schemas
     for schema in ['bronze', 'silver', 'gold']:

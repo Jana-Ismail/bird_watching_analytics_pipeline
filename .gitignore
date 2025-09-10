@@ -11,10 +11,11 @@ notebooks/
 *.parquet
 *.xls
 *.xlsx
-# data/
+data/
 .vscode/
-*.json
 *.ducklake
+*.sql
+sql/
 
 
 # Byte-compiled / optimized / DLL files
