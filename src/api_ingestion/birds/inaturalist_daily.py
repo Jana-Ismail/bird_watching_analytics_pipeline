@@ -6,7 +6,7 @@ from pyinaturalist_convert import to_dataframe
 
 # from api_ingestion.inaturalist_historical import get_inaturalist_observations_by_location
 from src.utils.logging_utils import setup_logger
-from src.utils.date_utils import get_current_utc_timestamp, get_pacific_day_range_for_inat
+from src.utils.date_utils import get_current_utc_timestamp, get_pacific_day_range_for_inat, get_pacific_target_date
 from src.utils.storage_utils import upload_parquet_to_minio
 from src.config.app_settings import (
     LOG_FILE,
@@ -92,16 +92,18 @@ def convert_json_to_parquet_bytes(data):
 
 
 def main():
-    timestamp = get_current_utc_timestamp('%Y%m%d_%H%M%S')
+    timestamp = get_current_utc_timestamp('%Y-%m-%dT%H:%M:%S')
     logger.info(f'Starting iNaturalist API ingestion at {timestamp}')
 
+    # Need to factor out into process_inat_data function
     for hotspot_name, hotspot_data in CA_HOTSPOTS_BY_CENTER_POINT_COORDINATES.items():
         latitude, longitude = hotspot_data.split(',')
         latitude = float(latitude)
         longitude = float(longitude)
 
         radius_km = 200
-        start_date, end_date = get_pacific_day_range_for_inat()
+        start_date = get_pacific_target_date('%Y-%m-%d', 3)
+        end_date = get_pacific_target_date('%Y-%m-%dT23:59:59', 3)
 
         logger.info(f'Fetching iNaturalist API recent observation data for hotspot: {hotspot_name} on {start_date}')
         observations = get_inaturalist_observations_by_coordinates(
@@ -118,8 +120,8 @@ def main():
         parquet_bytes = convert_json_to_parquet_bytes(observations)
     
         logger.info(f'Uploading observations Parquet data to MinIO')
-        file_name = f'inaturalist_observations_{CA_REGION_CODE}_{hotspot_name}_{start_date}_{timestamp}.parquet'
-        object_name=f'birds/observations/region={CA_REGION_CODE}/hotspot={hotspot_name}/source=inaturalist/daily/date={start_date}/{file_name}'
+        file_name = f'inaturalist_observations_{CA_REGION_CODE}_{hotspot_name}_{start_date}.parquet'
+        object_name=f'birds/observations/source=inaturalist/region={CA_REGION_CODE}/hotspot={hotspot_name}/daily/date={start_date}/{file_name}'
         upload_parquet_to_minio(parquet_bytes, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
 
 

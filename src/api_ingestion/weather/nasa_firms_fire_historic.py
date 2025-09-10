@@ -43,18 +43,21 @@ def fetch_firms_chunk(
 
         if not response.text.strip():
             logger.info(f"No fire data returned for {date_str}")
-            return pd.DataFrame()
+            return None, url
 
-        return pd.read_csv(StringIO(response.text))
+        fire_data = pd.read_csv(StringIO(response.text))        
+        return fire_data, url
 
     except requests.RequestException as e:
         logger.error(f'API request failed for {date_str}: {e}')
-        return pd.DataFrame()
+        
+        return None, url
     except Exception as e:
         logger.error(f'Error parsing CSV for {date_str}: {e}')
+        
         return pd.DataFrame()
 
-def convert_csv_to_parquet(df: pd.DataFrame) -> BytesIO:
+def convert_csv_to_parquet(dataframe):
     """Convert a DataFrame to a parquet BytesIO buffer."""
     buffer = BytesIO()
     df.to_parquet(buffer, index=False)
@@ -74,12 +77,14 @@ def process_nasa_firms_data(start_date_str, end_date_str, api_key, data_source=N
     while current_date <= end_date:
         chunk_end_date = min(current_date + timedelta(days=CHUNK_SIZE_DAYS - 1), end_date)
 
-        fire_data = fetch_firms_chunk(current_date, chunk_end_date)
+        fire_data, url = fetch_firms_chunk(current_date, chunk_end_date)
         if not fire_data.empty:
+            fire_data['_ingestion_timestamp_utc'] = ingestion_timestamp
+            fire_data['_source'] = url
             parquet_buffer = convert_csv_to_parquet(fire_data)
 
-            file_name = f"nasa_firms_fire_{CA_REGION_CODE}_{current_date.strftime('%Y%m%d')}-{chunk_end_date.strftime('%Y%m%d')}_{ingestion_timestamp}.parquet"
-            object_name = (f'weather/fire/region={CA_REGION_CODE}/source=nasa_firms/historic/{file_name}'
+            file_name = f"nasa-firms_fire_{CA_REGION_CODE}_{current_date.strftime('%Y%m%d')}-{chunk_end_date.strftime('%Y%m%d')}.parquet"
+            object_name = (f'weather/fire/source=nasa-firms/region={CA_REGION_CODE}/historic/{file_name}'
             )
 
             upload_parquet_to_minio(parquet_buffer, object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
@@ -93,7 +98,7 @@ def process_nasa_firms_data(start_date_str, end_date_str, api_key, data_source=N
 
 
 def main():
-    timestamp = get_current_utc_timestamp('%Y%m%d_%H%M%S')
+    timestamp = get_current_utc_timestamp('%Y-%m-%dT%H:%M:%S')
     logger.info(f'Starting NASA FIRMS API ingestion at {timestamp}')
 
 
