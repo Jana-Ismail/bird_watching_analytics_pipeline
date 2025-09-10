@@ -39,31 +39,26 @@ def upload_parquet_to_minio(data, object_name, logger, bucket_name):
         logger.error(f'Error uploading to MinIO: {e}')
         raise
 
-def connect_duckdb_to_minio(duckdb_db='bird_db.ducklake'):
+def create_duckdb_s3_conn(duckdb_db=':memory:'):
     conn = duckdb.connect(duckdb_db)
 
-    conn.execute('INSTALL httpfs;')
-    conn.execute('INSTALL ducklake;')
-    conn.execute('LOAD httpfs;')
-    conn.execute('LOAD ducklake;')
+    conn.execute("INSTALL httpfs;")
+    conn.execute("INSTALL ducklake;")
+    conn.execute("LOAD httpfs;")
+    conn.execute("LOAD ducklake;")
 
-    # Configure MinIO credentials
-    conn.execute(f'SET s3_endpoint="{MINIO_ENDPOINT}"')
-    conn.execute(f'SET s3_access_key_id="{MINIO_ACCESS_KEY}"')
-    conn.execute(f'SET s3_secret_access_key="{MINIO_SECRET_KEY}"')
-    conn.execute('SET s3_use_ssl=false')
-    conn.execute('SET s3_region="us-east-1"')
+    conn.execute(f"SET s3_endpoint='{MINIO_ENDPOINT}'")
+    conn.execute(f"SET s3_access_key_id='{MINIO_ACCESS_KEY}'")
+    conn.execute(f"SET s3_secret_access_key='{MINIO_SECRET_KEY}'")
+    conn.execute("SET s3_use_ssl=false")
+    conn.execute("SET s3_region='us-east-1'")
 
     return conn
 
-def create_ducklake(conn, duckdb_db=':memory:'):
-    conn.execute(f"""
-        ATTACH 'ducklake:{duckdb_db}' AS bird_ducklake
-        (DATA_PATH '/Users/janaismail/workspace/de_2025/capstone/bird_sighting_analytics_pipeline/data/datalake/catalog');
-    """)
-        # (DATA_PATH 's3://ducklake/catalog');
-    conn.execute('USE bird_ducklake;')
+def create_duckdb_local_conn(logger, duckdb_engine=':memory:'):
+    logger.info(f'Creating local DuckDB connection with DuckDB database engine: {duckdb_engine}')
+    conn = duckdb.connect(duckdb_engine)
+    conn.execute("INSTALL ducklake;")
+    conn.execute("LOAD ducklake;")
 
-    # Medallion schemas
-    for schema in ['bronze', 'silver', 'gold']:
-        conn.execute(f'CREATE SCHEMA IF NOT EXISTS {schema}')
+    return conn
