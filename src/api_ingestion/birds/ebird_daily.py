@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta, timezone
 
 from src.utils.logging_utils import setup_logger
-from src.utils.date_utils import get_current_utc_timestamp
+from src.utils.date_utils import get_current_utc_timestamp, get_pacific_target_date
 from src.utils.storage_utils import upload_parquet_to_minio
 from src.config.app_settings import (
     LOG_FILE,
@@ -38,21 +38,24 @@ def get_recent_observations_by_region(region_code, base_url=EBIRD_BASE_URL, api_
         logger.error(f'Error fetching data from eBird API: {e}')
         raise
 
-    return response.json()
+    return response.json(), url
 
-def convert_json_to_parquet(data):
+def convert_json_to_parquet(data, timestamp, source_url):
     bird_data = pd.DataFrame(data)
+    bird_data['_ingestion_timestamp_utc'] = timestamp
+    bird_data['_source'] = source_url
+
     buffer = BytesIO()
     bird_data.to_parquet(buffer, index=False)
     buffer.seek(0)
     return buffer
 
 def main():
-    today_utc = datetime.now(timezone.utc).date()
-    yesterday_utc = today_utc - timedelta(days=1)
-    timestamp = get_current_utc_timestamp('%Y%m%d_%H%M%S')
-    logger.info(f'Starting eBird API ingestion for {yesterday_utc}')
-    
+    timestamp = get_current_utc_timestamp('%Y-%m-%dT%H:%M:%S')
+
+    target_date = get_pacific_target_date('%Y-%m-%d', 3)
+    logger.info(f'Starting eBird API ingestion for {target_date}')
+
     logger.info(f'Fetching eBird API recent observation data')
 
     region_code = CA_REGION_CODE
@@ -62,22 +65,22 @@ def main():
 
     try:
         logger.info('Fetching recent CA observations')
-        daily_observations = get_recent_observations_by_region(region_code, query_params=query_params)
+        observations, url = get_recent_observations_by_region(region_code, query_params=query_params)
     except Exception as e:
         logger.error(f'Error fetching eBird API data: {e}')
         raise
 
-    if not daily_observations:
+    if not observations:
         logger.warning(f'No recent observations found for region: "{region_code}"')
         return
 
     logger.info(f'Converting eBird API data to Parquet format')
-    daily_observations_parquet = convert_json_to_parquet(daily_observations)
+    observations_buffer = convert_json_to_parquet(observations, timestamp, url)
 
     logger.info(f'Uploading Parquet file to MinIO')
-    file_name = f'ebird_observations_{region_code}_{timestamp}.parquet'
-    object_name=f'birds/observations/region={region_code}/source=ebird/daily/date={yesterday_utc}/{file_name}'
-    upload_parquet_to_minio(daily_observations_parquet, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
+    file_name = f'ebird_observations_{region_code}.parquet'
+    object_name=f'birds/observations/source=ebird/region={region_code}/daily/date={target_date}/{file_name}'
+    upload_parquet_to_minio(observations_buffer, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
 
 
 if __name__ == "__main__":
