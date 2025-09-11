@@ -1,0 +1,40 @@
+{
+    "name": "Bird Sightings Analytics Pipeline Dev (Single Airflow Container)",
+    "build": {
+        "dockerfile": "Dockerfile", 
+        "context": ".."
+    },
+    
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-toolsai.jupyter",
+                "EditorConfig.EditorConfig",
+                "dbaeumer.vscode-eslint",
+                "redhat.vscode-yaml",
+                "ms-azuretools.vscode-docker",
+                // "HashiCorp.terraform",
+                // "innoverio.vscode-dbt-power-user",
+                "ms-vscode.remote-containers"
+            ],
+            "settings": {
+                "python.pythonPath": "/usr/local/bin/python",
+                // "python.linting.enabled": true,
+                // "python.linting.pylintEnabled": true,
+                "python.formatting.provider": "black",
+                // "dbt.profilesDir": "${containerWorkspaceFolder}/dbt/my_dbt_project",
+                // "dbt.projectDir": "${containerWorkspaceFolder}/dbt/my_dbt_project"
+            }
+        }
+    },
+    "forwardPorts": [8080], 
+    "remoteUser": "airflow", 
+    // "postCreateCommand": "python ${containerWorkspaceFolder}/_devcontainer_setup.py", // Use a separate setup script
+    "mounts": [
+
+        "source=${localWorkspaceFolder},target=/opt/airflow,type=bind,consistency=cached",
+
+        "source=${localWorkspaceFolder}/.env,target=/opt/airflow/.env,type=bind,consistency=cached"
+    ]
+}
