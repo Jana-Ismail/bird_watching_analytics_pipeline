@@ -50,7 +50,7 @@ def process_nasa_firms_data(data, url, timestamp, target_date):
     metadata = {
         '_source': 'NASA FIRMS API',
         '_source_url': url,
-        '_ingestion_timestamp_utc': timestamp,
+        '_ingested_at_utc': timestamp,
     }
 
     logger.info(f'Converting NASA FIRMS data to Parquet for upload to MinIO at ingestion time: {timestamp}')

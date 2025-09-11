@@ -47,7 +47,7 @@ def process_ebird_daily(data, region_code, target_date, timestamp, url):
     metadata = {
         '_source': 'eBird API',
         '_source_url': url,
-        '_ingestion_timestamp_utc': timestamp,
+        '_ingested_at_utc': timestamp,
     }
 
     observations_buffer = convert_data_to_parquet(data, metadata)
