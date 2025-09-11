@@ -1,3 +1,11 @@
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Test & coverage
+.pytest_cache/
+
+# MyPy & type checking
+.mypy_cache/
 # Personal additions
 *.env
 *.venv
@@ -22,6 +30,31 @@ sql/
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Additional Python ignores from user list
+*.pyo
+*.pyd
+pip-wheel-metadata/
+
+# VS Code / Devcontainer (user)
+.devcontainer/.venv/
+
+# Airflow runtime files (user)
+airflow.db
+airflow-webserver.pid
+dags/__pycache__/
+plugins/__pycache__/
+
+# SQLite & metadata (user)
+*.db
+*.sqlite
+
+# OS junk (user)
+Thumbs.db
+
+# Docker artifacts (user)
+*.pid
+*.sock
 
 # C extensions
 *.so
