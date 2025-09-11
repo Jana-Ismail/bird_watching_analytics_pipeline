@@ -8,3 +8,4 @@ fastparquet
 pyarrow
 pyinaturalist
 pyinaturalist-convert[all]
+numpy
