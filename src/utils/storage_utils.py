@@ -89,9 +89,10 @@ def create_duckdb_local_conn(logger, duckdb_engine):
     return conn
 
 def attach_ducklake(duckdb_engine):
-    conn = duckdb.connect(duckdb_engine)
+    conn = create_duckdb_s3_conn(duckdb_engine)
     conn.execute(f"""
                     ATTACH 'ducklake:/Users/janaismail/workspace/de_2025/capstone/bird_sighting_analytics_pipeline/data/ducklake/bird_sightings.ducklake' 
                     AS bird_ducklake;
                 """)
     conn.execute("USE bird_ducklake;")
+    return conn
