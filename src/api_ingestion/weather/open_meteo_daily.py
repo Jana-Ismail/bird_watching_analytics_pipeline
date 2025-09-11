@@ -15,7 +15,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
 from src.utils.logging_utils import setup_logger, get_log_name
-from src.utils.file_utils import convert_json_to_parquet, convert_nested_json_to_parquet
+from src.utils.file_utils import convert_nested_json_to_parquet
 from src.utils.date_utils import get_current_utc_timestamp, get_pacific_target_date
 from src.utils.storage_utils import upload_parquet_to_minio
 
@@ -60,8 +60,10 @@ def fetch_open_meteo_weather_daily(
 
         response.raise_for_status()
         weather = response.json()
+        request_url = response.url
 
-        return weather
+        return weather, request_url
+
     except RuntimeError as e:
         logger.error(f'Open Meteo: exceed retries. Error: {e}')
         raise
@@ -89,7 +91,7 @@ def fetch_open_meteo_coordinate_tiles(url, tiles_file_path, target_date, timesta
 
         try:
             logger.info(f'Fetching weather data for tile {tile_id} at ({latitude}, {longitude}) for date {target_date} at ingestion_time {timestamp_utc}')
-            weather = fetch_open_meteo_weather_daily(url, latitude, longitude, start_date, end_date)
+            weather, request_url = fetch_open_meteo_weather_daily(url, latitude, longitude, start_date, end_date)
             logger.info(f'Fetched weather for tile {tile_id} at ({latitude}, {longitude}) for date {target_date} at ingestion_time {timestamp_utc}')
         except Exception as e:
             logger.error(f'Error fetching weather for tile {tile_id} at ({latitude}, {longitude}) for date {target_date} at ingestion_time {timestamp_utc}: {e}')
@@ -99,17 +101,24 @@ def fetch_open_meteo_coordinate_tiles(url, tiles_file_path, target_date, timesta
             logger.info(f'No weather data found for tile {tile_id} at ({latitude}, {longitude}) for date {target_date} at ingestion_time {timestamp_utc}')
             continue
         else:
-            process_tile_weather_data(weather, tile_id, latitude, longitude, target_date, timestamp_utc)
+            process_tile_weather_data(weather, request_url, tile_id, latitude, longitude, target_date, timestamp_utc)
 
         time.sleep(0.2)
 
-def process_tile_weather_data(data, tile_id, latitude, longitude, target_date, timestamp_utc):
+def process_tile_weather_data(data, request_url, tile_id, latitude, longitude, target_date, timestamp_utc):
         logger.info(f'Converting weather data to Parquet for tile {tile_id} at ({latitude}, {longitude}) for date {target_date} at ingestion_time {timestamp_utc}')
-        weather_buffer = convert_nested_json_to_parquet(data)
+        
+        metadata = {
+            '_source': 'Open-Meteo API',
+            '_source_url': request_url,
+            '_ingestion_at': timestamp_utc,
+        }
+
+        weather_buffer = convert_nested_json_to_parquet(data, metadata_columns=metadata)
 
         logger.info(f'Uploading weather data to MinIO for tile {tile_id} at ({latitude}, {longitude}) for date {target_date} at ingestion_time {timestamp_utc}')
         file_name = f'open-meteo_weather_{CA_REGION_CODE}_{target_date}_tile-{tile_id}.parquet'
-        object_name = f'weather/general/source=open-meteo/region={CA_REGION_CODE}/daily/date={target_date}/grid_40km/tile={tile_id}/{file_name}'
+        object_name = f'weather/general/source=open-meteo/region={CA_REGION_CODE}/frequency=daily/date={target_date}/grid_size=40km/tile={tile_id}/{file_name}'
         upload_parquet_to_minio(weather_buffer, object_name=object_name, bucket_name='raw', logger=logger)
         logger.info(f'Successfully uploaded weather data to MinIO for tile {tile_id} at ({latitude}, {longitude}) for date {target_date} at ingestion_time {timestamp_utc}')
 

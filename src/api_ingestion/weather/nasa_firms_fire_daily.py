@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from src.utils.logging_utils import setup_logger, get_log_name
 from src.utils.date_utils import get_current_utc_timestamp
 from src.utils.storage_utils import upload_parquet_to_minio
+from src.utils.file_utils import convert_data_to_parquet
 from src.config.app_settings import (
     LOG_FILE,
     CA_REGION_CODE,
@@ -27,9 +28,10 @@ def fetch_nasa_firms_daily(url, date, timeout=20):
         response.raise_for_status()
 
         fire_data = pd.read_csv(StringIO(response.text))
+        # fire_data = response.content
 
         logger.info(f'fetched {len(fire_data)} records for date: {date}')
-        return fire_data, url
+        return fire_data
     
     except requests.Timeout:
         logger.error(f'Request timed out after {timeout} seconds')
@@ -40,42 +42,50 @@ def fetch_nasa_firms_daily(url, date, timeout=20):
     except Exception as e:
         logger.error(f'Unexpected error: {e}')
 
-def convert_csv_to_parquet(data, timestamp):
-    """Convert a DataFrame to a parquet BytesIO buffer."""
-    fire_data = pd.DataFrame(data)
-    fire_data['_ingestion_timestamp_utc'] = timestamp
 
-    buffer = BytesIO()
-    data.to_parquet(buffer, index=False)
-    buffer.seek(0)
+def process_nasa_firms_data(data, url, timestamp, target_date):
+    """Process and upload NASA FIRMS data to MinIO as Parquet."""
+    logger.info(f'Starting to process NASA FIRMS data for upload to MinIO at ingestion time: {timestamp}')
 
-    return buffer
+    metadata = {
+        '_source': 'NASA FIRMS API',
+        '_source_url': url,
+        '_ingestion_timestamp_utc': timestamp,
+    }
+
+    logger.info(f'Converting NASA FIRMS data to Parquet for upload to MinIO at ingestion time: {timestamp}')
+    parquet_buffer = convert_data_to_parquet(data, metadata_columns=metadata)
+
+    logger.info(f'Uploading NASA FIRMS data to MinIO at ingestion time: {timestamp}')
+    file_name = f'nasa-firms_fire_{CA_REGION_CODE}_{target_date}.parquet'
+    object_name = f'weather/fire/source=nasa-firms/region={CA_REGION_CODE}/frequency=daily/date={target_date}/{file_name}'
+    try:
+        upload_parquet_to_minio(parquet_buffer, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
+        logger.info(f'Successfully uploaded NASA FIRMS data to MinIO at ingestion time: {timestamp} from url: "{url}"')
+    except Exception as e:
+        logger.error(f'Error uploading NASA FIRMS data to MinIO at ingestion time: {timestamp}: {e}')
+        raise
+
 
 def main():
 
     timestamp = get_current_utc_timestamp('%Y-%m-%dT%H:%M:%S')
     logger.info(f'Starting NASA FIRMS DAILY ingestion at {timestamp}')
 
-    # Get yesterday's date in UTC (timezone-aware) and format as 'YYYY-MM-DD'
-    target_date_str = (datetime.now(timezone.utc) - timedelta(days=3)).strftime('%Y-%m-%d')
+    target_date = (datetime.now(timezone.utc) - timedelta(days=3)).strftime('%Y-%m-%d')
+    url = f'{NASA_FIRMS_BASE_URL}/{NASA_FIRMS_API_KEY}/{NASA_FIRMS_DATA_SOURCE}/{CA_BBOX_COORDINATES}/1/{target_date}'
 
-    url = f'{NASA_FIRMS_BASE_URL}/{NASA_FIRMS_API_KEY}/{NASA_FIRMS_DATA_SOURCE}/{CA_BBOX_COORDINATES}/1/{target_date_str}'
-
-    fire_data, url = fetch_nasa_firms_daily(url, target_date_str)
+    try:
+        fire_data = fetch_nasa_firms_daily(url, target_date)
+    except Exception as e:
+        logger.error(f'Error fetching NASA FIRMS data: {e}')
+        return
 
     if fire_data is None or fire_data.empty:
-        logger.info('No data to upload.')
-        return
-    
-    fire_data['_ingestion_timestamp_utc'] = timestamp
-    fire_data['_source'] = url
+        logger.error('No data to upload.')
+    else:
+        process_nasa_firms_data(fire_data, url, timestamp, target_date)
 
-    parquet_buffer = convert_csv_to_parquet(fire_data, timestamp)
-
-    file_name = f'nasa-firms_fire_{CA_REGION_CODE}_{target_date_str}.parquet'
-    object_name = f'weather/fire/source=nasa-firms/region={CA_REGION_CODE}/daily/date={target_date_str}/{file_name}'
-
-    upload_parquet_to_minio(parquet_buffer, object_name=object_name, bucket_name=MINIO_RAW_BUCKET_NAME, logger=logger)
 
 if __name__ == '__main__':
     main()
