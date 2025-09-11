@@ -13,3 +13,4 @@ flask-session
 apache-airflow-providers-postgres
 apache-airflow[celery,postgres,s3,http,ssh]==2.9.2
 paramiko<3.0
+notebook
