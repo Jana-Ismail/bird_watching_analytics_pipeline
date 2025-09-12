@@ -57,14 +57,15 @@ def process_ebird_daily(data, region_code, target_date, timestamp, url):
 def main():
     timestamp = get_current_utc_timestamp('%Y-%m-%dT%H:%M:%S')
 
-    target_date = get_pacific_target_date('%Y-%m-%d', days_ago=3)
+    days_ago = 4
+    target_date = get_pacific_target_date('%Y-%m-%d', days_ago=days_ago)
     logger.info(f'Starting eBird API ingestion for {target_date}')
 
     logger.info(f'Fetching eBird API recent observation data')
 
     region_code = CA_REGION_CODE
     query_params = {
-        'back': 1
+        'back': days_ago
     }
 
     try:
