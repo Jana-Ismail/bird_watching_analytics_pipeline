@@ -15,7 +15,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
 from src.utils.logging_utils import setup_logger, get_log_name
-from src.utils.file_utils import convert_nested_json_to_parquet
+from src.utils.file_utils import convert_data_to_parquet
 from src.utils.date_utils import get_current_utc_timestamp, get_pacific_target_date
 from src.utils.storage_utils import upload_parquet_to_minio
 
@@ -114,7 +114,7 @@ def process_tile_weather_data(data, request_url, tile_id, latitude, longitude, t
             '_ingestion_at_utc': timestamp_utc,
         }
 
-        weather_buffer = convert_nested_json_to_parquet(data, metadata_columns=metadata)
+        weather_buffer = convert_data_to_parquet(data, metadata_columns=metadata)
 
         logger.info(f'Uploading weather data to MinIO for tile {tile_id} at ({latitude}, {longitude}) for date {target_date} at ingestion_time {timestamp_utc}')
         file_name = f'open-meteo_weather_{CA_REGION_CODE}_{target_date}_tile-{tile_id}.parquet'
