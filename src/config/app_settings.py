@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import sys
 
 load_dotenv()
 
@@ -80,8 +81,8 @@ METEO_TILES_40KM_FILE_PATH = DATA_DIR / 'meteo_tiles_40km_sacramento_to_tulare.j
 METEO_DAILY_PARAMS = 'temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_hours,windspeed_10m_max,windgusts_10m_max,winddirection_10m_dominant,shortwave_radiation_sum,sunrise,sunset,rain_sum,weathercode,et0_fao_evapotranspiration'
 
 # Minio Credentials
-MINIO_ENDPOINT = os.getenv('MINIO_URL_HOST_PORT') #local endpoint
-# MINIO_ENDPOINT = os.getenv('MINIO_EXTERNAL_URL')  # Use this for local dev inside dev container
+# MINIO_ENDPOINT = os.getenv('MINIO_URL_HOST_PORT') #local endpoint
+MINIO_ENDPOINT = os.getenv('MINIO_EXTERNAL_URL')  # Use this for local dev inside dev container
 MINIO_DUCKDB_S3_ENDPOINT = os.getenv('MINIO_DUCKDB_S3_ENDPOINT_URL')
 MINIO_ACCESS_KEY = os.getenv('MINIO_ACCESS_KEY')
 MINIO_SECRET_KEY = os.getenv('MINIO_SECRET_KEY')

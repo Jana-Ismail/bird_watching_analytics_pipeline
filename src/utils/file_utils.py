@@ -12,27 +12,6 @@ def ensure_directory_exists(path):
     
     return path
 
-# def convert_csv_to_parquet(data, timestamp):
-#     """Convert a DataFrame to a parquet BytesIO buffer."""
-#     fire_data = pd.DataFrame(data)
-#     fire_data['_ingestion_timestamp_utc'] = timestamp
-
-#     buffer = BytesIO()
-#     data.to_parquet(buffer, index=False)
-#     buffer.seek(0)
-
-#     return buffer
-
-# def convert_json_to_parquet(data):
-#     if not isinstance(data, pd.DataFrame):
-#         data = pd.DataFrame(data)
-
-#     buffer = BytesIO()
-#     data.to_parquet(buffer, index=False)
-#     buffer.seek(0)
-    
-#     return buffer
-
 def convert_data_to_parquet(data, metadata_columns=None):
     """
     Convert nested JSON/dict (or list of dicts) to a Parquet buffer using PyArrow.
