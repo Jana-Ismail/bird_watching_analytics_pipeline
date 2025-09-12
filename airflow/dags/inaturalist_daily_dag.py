@@ -15,27 +15,27 @@ logger = setup_logger(get_log_name(__file__), '/opt/airflow/logs/ingestion_dag.l
 
 
 try:
-    from src.api_ingestion.birds.ebird_daily import main as ebird_daily_main
+    from src.api_ingestion.birds.inaturalist_daily import main as inat_daily_main
 except ImportError as e:
     logger.error(f'ERROR: Could not import external scripts. Check Airflow PYTHONPATH in Airflow containers.')
     logger.error(f'ImportError: {e}')
     raise
 
-def run_ebird_daily_ingestion(**kwargs):
+def run_inat_daily_ingestion(**kwargs):
     kwargs['ti'].log.info(f'Running ebird_daily_main for DAG run {kwargs["dag_run"].run_id}')
-    ebird_daily_main()
+    inat_daily_main()
     kwargs['ti'].log.info(f'Completed ebird_daily_main for DAG run {kwargs["dag_run"].run_id}')
 
 with DAG(
-    dag_id='bird_sightings_daily_ingestion_pipeline',
+    dag_id='inaturalist_daily_ingestion_pipeline',
     start_date=days_ago(1),
     schedule_interval='0 17 * * *',
     catchup=False,
-    tags=['bird_sightings', 'daily_ingestion', 'ebird', 'api', 'raw', 'minio']
+    tags=['bird_sightings', 'daily_ingestion', 'inaturalist', 'api', 'raw', 'minio']
 ) as dag:
 
     ebird_daily_api_to_minio_task = PythonOperator(
-        task_id='run_ebird_daily_ingestion',
-        python_callable=run_ebird_daily_ingestion,
+        task_id='run_inat_daily_ingestion',
+        python_callable=run_inat_daily_ingestion,
         provide_context=True
     )
