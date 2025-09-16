@@ -65,4 +65,9 @@ recent_species_location = conn.execute("""
                             
                              """).fetchdf()
 
+st.header("Recent Species Locations")
 st.map(recent_species_location)
+
+weather_stats = conn.execute("""
+    
+""")
