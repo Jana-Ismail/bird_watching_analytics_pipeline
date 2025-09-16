@@ -108,8 +108,9 @@ def main():
         longitude = float(longitude)
 
         radius_km = 200
-        start_date = get_pacific_target_date('%Y-%m-%d', 3)
-        end_date = get_pacific_target_date('%Y-%m-%dT23:59:59', 3)
+        days_ago = 1
+        start_date = get_pacific_target_date('%Y-%m-%d', days_ago)
+        end_date = get_pacific_target_date('%Y-%m-%dT23:59:59', days_ago)
 
         logger.info(f'Fetching iNaturalist API recent observation data for hotspot: {hotspot_name} on {start_date}')
         observations = get_inaturalist_observations_by_coordinates(
