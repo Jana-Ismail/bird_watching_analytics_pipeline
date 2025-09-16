@@ -111,7 +111,7 @@ def process_tile_weather_data(data, request_url, tile_id, latitude, longitude, t
         metadata = {
             '_source': 'Open-Meteo API',
             '_source_url': request_url,
-            '_ingestion_at_utc': timestamp_utc,
+            '_ingested_at_utc': timestamp_utc,
         }
 
         weather_buffer = convert_data_to_parquet(data, metadata_columns=metadata)

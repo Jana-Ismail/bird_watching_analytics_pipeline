@@ -49,6 +49,25 @@ def validate_ducklake_schemas(conn):
         
     return True
     
+def list_ducklake_schemas(conn):
+    
+    schemas = conn.execute("""
+        SELECT schema_name
+        FROM information_schema.schemata 
+        WHERE catalog_name='bird_ducklake';"""
+    ).fetchdf()
+
+    print(schemas)
+
+def list_ducklake_tables(conn):
+    tables = conn.execute("""
+        SELECT table_schema, table_name
+        FROM information_schema.tables
+        WHERE table_catalog = 'bird_ducklake'
+            AND table_schema IN ('bronze', 'silver', 'gold');"""
+    ).fetchdf()
+
+    print(tables)
 
 def main():
     duckdb_engine = ':memory:'
@@ -58,12 +77,15 @@ def main():
 
     s3_conn = attach_ducklake(duckdb_engine)
     create_ducklake_schemas(s3_conn)
-    
-    valid_schemas = validate_ducklake_schemas(s3_conn)
-    if valid_schemas:
-        logger.info("DuckLake setup completed successfully.")
-    else:
-        logger.error("DuckLake setup encountered issues.")
+
+    # list_ducklake_schemas(s3_conn)
+    list_ducklake_tables(s3_conn)
+
+    # valid_schemas = validate_ducklake_schemas(s3_conn)
+    # if valid_schemas:
+    #     logger.info("DuckLake setup completed successfully.")
+    # else:
+    #     logger.error("DuckLake setup encountered issues.")
 
     s3_conn.close()
 

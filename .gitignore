@@ -24,6 +24,7 @@ data/
 *.ducklake
 *.sql
 sql/
+.DS_Store
 
 
 # Byte-compiled / optimized / DLL files
