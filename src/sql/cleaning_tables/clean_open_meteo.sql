@@ -1,0 +1,25 @@
+CREATE OR REPLACE TABLE silver.clean_open_meteo AS
+SELECT
+    CAST(latitude AS DOUBLE) AS latitude,
+    CAST(longitude AS DOUBLE) AS longitude,
+    CAST(elevation AS DOUBLE) AS elevation,
+    CAST(date AS DATE) AS observation_date,
+    CAST(grid_size AS VARCHAR) AS grid_size,
+    CAST(region AS VARCHAR) AS region,
+    CAST(tile AS VARCHAR) AS tile_id,
+    CAST(daily.temperature_2m_max[1] AS DOUBLE) AS temp_max_c,
+    CAST(daily.temperature_2m_min[1] AS DOUBLE) AS temp_min_c,
+    CAST(daily.precipitation_sum[1] AS DOUBLE) AS precipitation_mm,
+    CAST(daily.precipitation_hours[1] AS DOUBLE) AS precipitation_hours,
+    CAST(daily.rain_sum[1] AS DOUBLE) AS rain_mm,
+    CAST(daily.windgusts_10m_max[1] AS DOUBLE) AS wind_gust_kmh,
+    CAST(daily.windspeed_10m_max[1] AS DOUBLE) AS wind_speed_kmh,
+    CAST(daily.winddirection_10m_dominant[1] AS INT) AS wind_dir_deg,
+    CAST(daily.shortwave_radiation_sum[1] AS DOUBLE) AS solar_mj_m2,
+    CAST(daily.weathercode[1] AS INT) AS weather_code,
+    daily.sunrise[1] AS sunrise_time,
+    daily.sunset[1] AS sunset_time,
+    _source,
+    _source_url,
+    CAST(_ingested_at_utc AS TIMESTAMP) AS ingested_at_utc
+FROM bronze.raw_open_meteo;
