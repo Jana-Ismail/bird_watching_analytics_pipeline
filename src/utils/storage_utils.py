@@ -66,10 +66,17 @@ def upload_file_to_minio(file, object_name, logger, bucket_name):
 def create_duckdb_s3_conn(duckdb_db):
     conn = duckdb.connect(duckdb_db)
 
-    conn.execute("INSTALL httpfs;")
     conn.execute("INSTALL ducklake;")
-    conn.execute("LOAD httpfs;")
     conn.execute("LOAD ducklake;")
+    
+    conn.execute(f"""
+                    ATTACH 'ducklake:/Users/janaismail/workspace/de_2025/capstone/bird_sighting_analytics_pipeline/data/ducklake/bird_sightings.ducklake' 
+                    AS bird_ducklake;
+                """)
+    conn.execute("USE bird_ducklake;")
+
+    conn.execute("INSTALL httpfs;")
+    conn.execute("LOAD httpfs;")
 
     conn.execute(f"SET s3_endpoint='{MINIO_DUCKDB_S3_ENDPOINT}'")
     conn.execute(f"SET s3_access_key_id='{MINIO_ACCESS_KEY}'")

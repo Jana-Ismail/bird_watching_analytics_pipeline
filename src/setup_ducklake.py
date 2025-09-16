@@ -73,19 +73,18 @@ def main():
     duckdb_engine = ':memory:'
     s3_conn = create_duckdb_s3_conn(duckdb_engine)
     create_ducklake_catalog(s3_conn)
-    s3_conn.close()
 
     s3_conn = attach_ducklake(duckdb_engine)
     create_ducklake_schemas(s3_conn)
 
-    # list_ducklake_schemas(s3_conn)
+    list_ducklake_schemas(s3_conn)
     list_ducklake_tables(s3_conn)
 
-    # valid_schemas = validate_ducklake_schemas(s3_conn)
-    # if valid_schemas:
-    #     logger.info("DuckLake setup completed successfully.")
-    # else:
-    #     logger.error("DuckLake setup encountered issues.")
+    valid_schemas = validate_ducklake_schemas(s3_conn)
+    if valid_schemas:
+        logger.info("DuckLake setup completed successfully.")
+    else:
+        logger.error("DuckLake setup encountered issues.")
 
     s3_conn.close()
 
