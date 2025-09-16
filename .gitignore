@@ -22,8 +22,8 @@ notebooks/
 data/
 .vscode/
 *.ducklake
-*.sql
-sql/
+# *.sql
+# sql/
 .DS_Store
 
 
@@ -49,6 +49,7 @@ plugins/__pycache__/
 # SQLite & metadata (user)
 *.db
 *.sqlite
+src/api_ingestion/weather/open_meteo_historic.py
 
 # OS junk (user)
 Thumbs.db
