@@ -32,6 +32,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+src/api_ingestion/birds/inat_yearly.py
+src/api_ingestion/inaturalist_historic.py
+src/api_ingestion/weather/nasa_firms_historic.py
 # Additional Python ignores from user list
 *.pyo
 *.pyd
