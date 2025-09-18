@@ -17,6 +17,26 @@ logger = setup_logger(log_name, LOG_FILE)
 
 INAT_BASE_URL = "https://api.inaturalist.org/v1/observations"
 
+CA_INAT_HOTSPOTS = [
+    {
+        'place_name': 'monterey_bay',
+        'place_id': 118063,
+    },
+    {
+        'place_name': 'san_francisco_valley',
+        'place_id': 54321,
+    },
+    {
+        'place_name': 'san_joaquin_valley',
+        'place_id': 157602,
+    },
+    {
+        'place_name': 'sacramento_valley',
+        'place_id': 157601,
+    },
+    {}
+
+]
 
 def get_inaturalist_observations(start_date, end_date, place_id, per_page=200):
     """
@@ -122,14 +142,14 @@ def main():
     # end_date = get_pacific_target_date("%Y-%m-%dT23:59:59", days_ago)
     years = [2023, 2024]
     for year in years:
-        start_date = f'{year}-01-01'
+        start_date = f'{year}-07-01'
         end_date = f'{year}-12-31'
 
         # place_id = 118063  # example CA hotspot
         # place_name = "monterey_bay"
 
-        place_id = 54321
-        place_name = 'san_francisco_valley'
+        # place_id = 54321
+        # place_name = 'san_francisco_valley'
 
         try:
             observations, url, total_results = get_inaturalist_observations(start_date, end_date, place_id)

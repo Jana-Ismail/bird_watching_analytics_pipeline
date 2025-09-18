@@ -19,7 +19,6 @@ FROM (
         _source,
         _source_url,
         CAST(_ingested_at_utc AS TIMESTAMP) AS _ingested_at_utc,
-        CAST(date AS DATE) AS obs_date,
         ROW_NUMBER() OVER (PARTITION BY latitude, longitude, acquisition_date, acquisition_time ORDER BY _ingested_at_utc DESC) AS row_num
     FROM bronze.raw_nasa_firms
 ) subquery
